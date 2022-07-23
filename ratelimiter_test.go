@@ -10,7 +10,11 @@ import (
 
 func TestWindowLimiter(t *testing.T) {
 	limiter := ratelimiter.NewWindowLimiter(1000, 2)
+	test(limiter)
+}
 
+func TestSlideWindowLimiter(t *testing.T) {
+	limiter := ratelimiter.NewSlideWindowLimiter(1000, 2, 10)
 	test(limiter)
 }
 
