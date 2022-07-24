@@ -18,11 +18,20 @@ func TestSlideWindowLimiter(t *testing.T) {
 	test(limiter)
 }
 
+func TestLeakBucketLimiter(t *testing.T) {
+	test(ratelimiter.NewLeakBucketLimiter(4, 2))
+}
+
+func TestTokenBucketLimiter(t *testing.T) {
+	test(ratelimiter.NewTokenBucketLimiter(3, 2))
+}
+
 func test(limiter ratelimiter.Limiter) {
-	for i := 0; i < 10; i++ {
+	fmt.Printf("\n%T\n", limiter)
+	for i := 0; i < 20; i++ {
 		acq := limiter.Allow()
 		t := time.Now().Unix()
 		fmt.Printf("%d 次请求 %d 是否被接受 %t \n", i, t, acq)
-		time.Sleep(time.Millisecond * 300)
+		time.Sleep(time.Millisecond * 100)
 	}
 }
