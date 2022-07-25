@@ -8,21 +8,22 @@ import (
 	"github.com/geekmanvip/ratelimiter"
 )
 
-func TestWindowLimiter(t *testing.T) {
+func TestSetRedisStorage(t *testing.T) {
 	ratelimiter.SetRedisStorage(ratelimiter.RedisConfig{
-		Host:     "192.168.0.190",
-		Port:     8003,
+		Host:     "127.0.0.1",
+		Port:     6379,
 		Password: "",
 		Db:       0,
 	})
+}
 
-	limiter := ratelimiter.NewWindowLimiter(1000, 2)
-	test(limiter)
+func TestWindowLimiter(t *testing.T) {
+	//test(ratelimiter.NewWindowLimiter(1000, 2))
 }
 
 func TestSlideWindowLimiter(t *testing.T) {
-	//limiter := ratelimiter.NewSlideWindowLimiter(1000, 2, 10)
-	//test(limiter)
+	ratelimiter.NewSlideWindowLimiter(1000, 2, 10).Allow()
+	//test(ratelimiter.NewSlideWindowLimiter(1000, 2, 10))
 }
 
 func TestLeakBucketLimiter(t *testing.T) {

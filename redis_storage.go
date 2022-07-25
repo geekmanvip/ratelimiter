@@ -8,6 +8,7 @@ import (
 )
 
 var rdb *redis.Client
+var ctx = context.Background()
 
 type RedisConfig struct {
 	Host     string `json:"host"`
