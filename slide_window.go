@@ -113,6 +113,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 			if tonumber(unixTimesTable[i]) >= lastTime then
 				sum =  sum + item
 			end
+			return type(i)
 		end
 		redis.call("HSET", key, "unixTimes", table.concat(unixTimesTable, ","))
 
