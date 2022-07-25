@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// 定义限流器接口
+// Limiter 定义限流器接口
 type Limiter interface {
 	Allow() bool
 	AllowN(num int64) bool
@@ -72,7 +72,7 @@ type slideWindowLimiter struct {
 	// 每个小格子的时间间隔
 	eachTime int64
 	// 每个小格子累积的请求数
-	eachCouters [][2]int64
+	eachCounters [][2]int64
 }
 
 func (sw *slideWindowLimiter) Allow() bool {
@@ -87,14 +87,14 @@ func (sw *slideWindowLimiter) AllowN(num int64) bool {
 	// 计算当前属于哪个小格子
 	nowIndex := int64(math.Floor(float64(currentTime-sw.startAt)/float64(sw.eachTime))) % sw.SplitNum
 	// 如果这个格子已经过了一个完整时间窗口，统计数据无效，直接清零
-	if currentTime-sw.eachCouters[nowIndex][0] >= sw.TimeInterval {
-		sw.eachCouters[nowIndex][1] = 0
+	if currentTime-sw.eachCounters[nowIndex][0] >= sw.TimeInterval {
+		sw.eachCounters[nowIndex][1] = 0
 	}
-	sw.eachCouters[nowIndex][0] = currentTime
+	sw.eachCounters[nowIndex][0] = currentTime
 
 	var sum int64 = 0
 	lastTime := currentTime - sw.TimeInterval
-	for _, item := range sw.eachCouters {
+	for _, item := range sw.eachCounters {
 		// 已经过期的格子不计入总数，因为有些格子，可能因为访问频率过低，一直没有被触发，所以还是要判断
 		if item[0] >= lastTime {
 			sum += item[1]
@@ -102,7 +102,7 @@ func (sw *slideWindowLimiter) AllowN(num int64) bool {
 	}
 
 	if sum+num <= sw.Limit {
-		sw.eachCouters[nowIndex][1] += num
+		sw.eachCounters[nowIndex][1] += num
 		return true
 	}
 
@@ -116,7 +116,7 @@ func NewSlideWindowLimiter(timeInterval int64, limit int64, splitNum int64) Limi
 		SplitNum:     splitNum,
 		startAt:      time.Now().UnixMilli(),
 		eachTime:     timeInterval / splitNum,
-		eachCouters:  make([][2]int64, splitNum),
+		eachCounters: make([][2]int64, splitNum),
 	}
 }
 
