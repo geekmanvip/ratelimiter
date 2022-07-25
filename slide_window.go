@@ -99,6 +99,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		
 		-- 计算当前归属的格子
 		local nowIndex = ((currentTime - startAt)/eachTime)%splitNum + 1
+		nowIndex = 1
 		
 		-- 如果这个格子已经过了一个完整时间窗口，统计数据无效，直接清零
 		if (currentTime - countTable[nowIndex]) >= timeInterval then
@@ -108,27 +109,16 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		-- 计算总数
 		local sum = 0
 		local lastTime = currentTime - timeInterval
-		local newUnixTimesStr = unixTimesTable[1]
 		for i, item in pairs(countTable) do
 			if tonumber(unixTimesTable[i]) >= lastTime then
 				sum =  sum + item
 			end
-
-			if i > 1 then
-				newUnixTimesStr = newUnixTimesStr..","..unixTimesTable[i]
-			end
 		end
-		redis.call("HSET", key, "unixTimes", newUnixTimesStr)
+		redis.call("HSET", key, "unixTimes", table.concat(unixTimesTable, ","))
 
 		if sum + num <= limit then
 			countTable[nowIndex] = countTable[nowIndex] + num
-			local newCountStr = countTable[1]
-			for i, item in pairs(countTable) do
-				if i > 1 then
-					newCountStr = newCountStr..","..item
-				end
-			end
-			redis.call("HSET", key, "counters", newCountStr)
+			redis.call("HSET", key, "counters", table.concat(countTable, ","))
 			return 1
 		end
 		return 0
