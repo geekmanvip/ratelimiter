@@ -79,7 +79,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		
 		-- 获取 Redis 的毫秒
 		local tmp_time = redis.call("TIME")
-		local currentTime = tonumber(tmp_time[1] * 1000 + tmp_time[2]/1000)
+		local currentTime = math.ceil(tonumber(tmp_time[1] * 1000 + tmp_time[2]/1000))
 
 		-- 获取 hash 的数据
 		local rateInfo = redis.call("HMGET", key, "startAt", "counters", "unixTimes")
@@ -99,11 +99,12 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		
 		-- 计算当前归属的格子
 		local nowIndex = math.ceil((currentTime - startAt)/eachTime)%splitNum + 1
-
+		
 		-- 如果这个格子已经过了一个完整时间窗口，统计数据无效，直接清零
 		if (currentTime - countTable[nowIndex]) >= timeInterval then
-			unixTimesTable[nowIndex] = 0
+			countTable[nowIndex] = 0
 		end
+		unixTimesTable[nowIndex] = currentTime
 
 		-- 计算总数
 		local sum = 0
