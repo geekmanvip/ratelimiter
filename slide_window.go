@@ -99,16 +99,17 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		
 		-- 计算当前归属的格子
 		local nowIndex = ((currentTime - startAt)/eachTime)%splitNum
+		nowIndex = 1
 		
 		-- 如果这个格子已经过了一个完整时间窗口，统计数据无效，直接清零
-		if currentTime - countTable[nowIndex] >= timeInterval then
+		if (currentTime - countTable[nowIndex]) >= timeInterval then
 			unixTimesTable[nowIndex] = 0
 		end
 
 		-- 计算总数
 		local sum = 0
 		local lastTime = currentTime - timeInterval
-		local newUnixTimesStr = unixTimesTable[0]
+		local newUnixTimesStr = unixTimesTable[1]
 		for i, item in pairs(countTable) do
 			if unixTimesTable[i] >= lastTime then
 				sum =  sum + item
@@ -122,7 +123,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 
 		if sum + num <= limit then
 			countTable[nowIndex] = countTable[nowIndex] + num
-			local newCountStr = countTable[0]
+			local newCountStr = countTable[1]
 			for i, item in pairs(countTable) do
 				if i > 0 then
 					newCountStr = newCountStr..","..item
