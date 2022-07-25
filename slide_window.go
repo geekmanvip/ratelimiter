@@ -98,8 +98,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		end)
 		
 		-- 计算当前归属的格子
-		local nowIndex = ((currentTime - startAt)/eachTime)%splitNum
-		nowIndex = 1
+		local nowIndex = ((currentTime - startAt)/eachTime)%splitNum + 1
 		
 		-- 如果这个格子已经过了一个完整时间窗口，统计数据无效，直接清零
 		if (currentTime - countTable[nowIndex]) >= timeInterval then
