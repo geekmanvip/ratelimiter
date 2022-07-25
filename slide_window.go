@@ -110,28 +110,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		local sum = 0
 		local lastTime = currentTime - timeInterval
 		local newUnixTimesStr = unixTimesTable[1]
-		for i, item in pairs(countTable) do
-			if unixTimesTable[i] >= lastTime then
-				sum =  sum + item
-			end
-
-			if i > 0 then
-				newUnixTimesStr = newUnixTimesStr..","..unixTimesTable[i]
-			end
-		end
-		redis.call("HSET", key, "unixTimes", newUnixTimesStr)
-
-		if sum + num <= limit then
-			countTable[nowIndex] = countTable[nowIndex] + num
-			local newCountStr = countTable[1]
-			for i, item in pairs(countTable) do
-				if i > 0 then
-					newCountStr = newCountStr..","..item
-				end
-			end
-			redis.call("HSET", key, "counters", newCountStr)
-			return 1
-		end
+	
 		return 0
 	`)
 	res, err := lua.Run(ctx,
