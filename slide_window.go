@@ -1,7 +1,6 @@
 package ratelimiter
 
 import (
-	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"math"
@@ -101,7 +100,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		local nowIndex = math.ceil((currentTime - startAt)/eachTime)%splitNum + 1
 		
 		-- 如果这个格子已经过了一个完整时间窗口，统计数据无效，直接清零
-		if (currentTime - countTable[nowIndex]) >= timeInterval then
+		if (currentTime - unixTimesTable[nowIndex]) >= timeInterval then
 			countTable[nowIndex] = 0
 		end
 		unixTimesTable[nowIndex] = currentTime
@@ -123,7 +122,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		end
 		return 0
 	`)
-	res, err := lua.Run(ctx,
+	res, _ := lua.Run(ctx,
 		rdb,
 		[]string{sw.redisKey},
 		sw.SplitNum,
@@ -131,8 +130,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		sw.eachTime,
 		sw.Limit,
 		num,
-	).Result()
-	fmt.Println(res, err, sw.redisKey)
+	).Int()
 	if res == 1 {
 		return true
 	}

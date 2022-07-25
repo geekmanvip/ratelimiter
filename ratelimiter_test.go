@@ -22,8 +22,8 @@ func TestWindowLimiter(t *testing.T) {
 }
 
 func TestSlideWindowLimiter(t *testing.T) {
-	ratelimiter.NewSlideWindowLimiter(1000, 2, 10).Allow()
-	//test(ratelimiter.NewSlideWindowLimiter(1000, 2, 10))
+	//ratelimiter.NewSlideWindowLimiter(1000, 2, 10).Allow()
+	test(ratelimiter.NewSlideWindowLimiter(1000, 2, 10))
 }
 
 func TestLeakBucketLimiter(t *testing.T) {
