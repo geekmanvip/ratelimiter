@@ -111,11 +111,11 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		local lastTime = currentTime - timeInterval
 		local newUnixTimesStr = unixTimesTable[1]
 		for i, item in pairs(countTable) do
-			if unixTimesTable[i] >= lastTime then
+			if tonumber(unixTimesTable[i]) >= lastTime then
 				sum =  sum + item
 			end
 
-			if i > 0 then
+			if i > 1 then
 				newUnixTimesStr = newUnixTimesStr..","..unixTimesTable[i]
 			end
 		end
@@ -125,7 +125,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 			countTable[nowIndex] = countTable[nowIndex] + num
 			local newCountStr = countTable[1]
 			for i, item in pairs(countTable) do
-				if i > 0 then
+				if i > 1 then
 					newCountStr = newCountStr..","..item
 				end
 			end
