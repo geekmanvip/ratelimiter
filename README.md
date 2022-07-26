@@ -12,6 +12,19 @@
 - 使用
 
     ```go
+    // 导入包
+    import (
+    	"github.com/geekmanvip/ratelimiter"
+    )
+    
+    // 可选项，配置 Redis 存储，就变成分布式限流器，如果未开启，则是单机的限流器
+    ratelimiter.SetRedisStorage(ratelimiter.RedisConfig{
+        Host:     "127.0.0.1",
+        Port:     6379,
+        Password: "",
+        Db:       0,
+    })
+    
     // step1 定义一个限流器，可以根据自己的需求，任意选择一个即可
     limiter := ratelimiter.NewWindowLimiter(1000, 2) // 固定窗口限流器
     // limiter := ratelimiter.NewSlideWindowLimiter(1000, 2, 10) // 滑动窗口限流器
