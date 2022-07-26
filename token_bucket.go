@@ -91,8 +91,8 @@ func (t *tokenBucketLimiter) allowWithRedis(num int64) bool {
 	return false
 }
 
-func (t *tokenBucketLimiter) WithRedis(key string) Limiter {
-	t.redisKey = redisPrefix + tokenBucketPrefix + key
+func (t *tokenBucketLimiter) WithRedis(redisKey string, fallbackOff int) Limiter {
+	t.redisKey = redisPrefix + tokenBucketPrefix + redisKey
 	if rdb != nil {
 		rdb.HSetNX(ctx, t.redisKey, "lastTime", t.lastTime)
 		rdb.HSetNX(ctx, t.redisKey, "waterNum", t.waterNum)

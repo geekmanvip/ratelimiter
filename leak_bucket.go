@@ -96,8 +96,8 @@ func (l *leakBucketLimiter) allowWithRedis(num int64) bool {
 	return false
 }
 
-func (l *leakBucketLimiter) WithRedis(key string) Limiter {
-	l.redisKey = redisPrefix + leakBucketPrefix + key
+func (l *leakBucketLimiter) WithRedis(redisKey string, fallbackOff int) Limiter {
+	l.redisKey = redisPrefix + leakBucketPrefix + redisKey
 	if rdb != nil {
 		rdb.HSetNX(ctx, l.redisKey, "lastTime", l.lastTime)
 		rdb.HSetNX(ctx, l.redisKey, "waterNum", l.waterNum)

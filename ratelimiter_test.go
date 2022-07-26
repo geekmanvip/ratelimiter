@@ -18,7 +18,8 @@ func TestSetRedisStorage(t *testing.T) {
 }
 
 func TestWindowLimiter(t *testing.T) {
-	//test(ratelimiter.NewWindowLimiter(1000, 2))
+	limiter := ratelimiter.NewWindowLimiter(1000, 2).WithRedis("window", 1)
+	test(limiter)
 }
 
 func TestSlideWindowLimiter(t *testing.T) {
@@ -32,7 +33,7 @@ func TestLeakBucketLimiter(t *testing.T) {
 }
 
 func TestTokenBucketLimiter(t *testing.T) {
-	test(ratelimiter.NewTokenBucketLimiter(3, 2).WithRedis("test"))
+	//test(ratelimiter.NewTokenBucketLimiter(3, 2).WithRedis("test"))
 }
 
 func test(limiter ratelimiter.Limiter) {
