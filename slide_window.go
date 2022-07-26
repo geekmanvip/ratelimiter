@@ -136,7 +136,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 	return false
 }
 
-func (sw *slideWindowLimiter) WithRedis(redisKey string, fallbackOff int) Limiter {
+func (sw *slideWindowLimiter) WithRedis(redisKey string) Limiter {
 	sw.redisKey = redisPrefix + slideWindowPrefix + redisKey
 	if rdb != nil {
 		rdb.HSetNX(ctx, sw.redisKey, "startAt", time.Now().UnixMilli())

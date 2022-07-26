@@ -18,7 +18,7 @@ func TestSetRedisStorage(t *testing.T) {
 }
 
 func TestWindowLimiter(t *testing.T) {
-	limiter := ratelimiter.NewWindowLimiter(1000, 2).WithRedis("window", 1)
+	limiter := ratelimiter.NewWindowLimiter(1000, 2).WithRedis("window")
 	test(limiter)
 }
 

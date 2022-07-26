@@ -15,8 +15,8 @@ type Limiter interface {
 	Allow() bool
 	// AllowN 允许多次请求
 	AllowN(num int64) bool
-	// WithRedis 使用 Redis 进行限流，Redis 如果连接失败，是否 fallback 到单机限流
-	WithRedis(redisKey string, fallbackOff int) Limiter
+	// WithRedis 使用 Redis 进行限流
+	WithRedis(redisKey string) Limiter
 	// 内部 Redis 实现
 	allowWithRedis(num int64) bool
 }

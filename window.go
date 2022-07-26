@@ -82,7 +82,7 @@ func (w *windowLimiter) allowWithRedis(num int64) bool {
 	return false
 }
 
-func (w *windowLimiter) WithRedis(redisKey string, fallbackOff int) Limiter {
+func (w *windowLimiter) WithRedis(redisKey string) Limiter {
 	w.redisKey = redisPrefix + windowPrefix + redisKey
 	return w
 }
