@@ -2,7 +2,6 @@ package ratelimiter
 
 import (
 	"github.com/go-redis/redis/v8"
-	"github.com/google/uuid"
 	"math"
 	"sync"
 	"time"
@@ -137,22 +136,24 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 	return false
 }
 
+func (sw *slideWindowLimiter) WithRedis(key string) Limiter {
+	sw.redisKey = redisPrefix + slideWindowPrefix + key
+	if rdb != nil {
+		rdb.HSetNX(ctx, sw.redisKey, "startAt", time.Now().UnixMilli())
+		rdb.HSetNX(ctx, sw.redisKey, "counters", joinStr("0", sw.SplitNum))
+		rdb.HSetNX(ctx, sw.redisKey, "unixTimes", joinStr("0", sw.SplitNum))
+		// hash 的过期问题，需要看下是不是需要自动续期
+		rdb.Expire(ctx, sw.redisKey, time.Hour)
+	}
+
+	return sw
+}
+
 // NewSlideWindowLimiter 创建滑动窗口限流器
 // @param timeInterval 窗口间隔，单位毫秒，默认 1000ms，也就是 1 秒，正常不要低于这个值
 // @param limit 在这个窗口内，不能超过的请求数
 // @param splitNum 将这个窗口拆分成多少个子窗口，避免临界窗口问题
 func NewSlideWindowLimiter(timeInterval int64, limit int64, splitNum int64) Limiter {
-	// todo redis 的 key 需要使用方传递进来，否则的话，分布式就没有一样，只能限制单机，windowLimiter 也有同样的问题
-	redisKey := "rl:sw:" + uuid.NewString()
-	redisKey = "test" // 测试用
-	if rdb != nil {
-		// todo 后续可以改为使用 lua 设置为 Redis 服务器时间
-		rdb.HSetNX(ctx, redisKey, "startAt", time.Now().UnixMilli())
-		rdb.HSetNX(ctx, redisKey, "counters", joinStr("0", splitNum))
-		rdb.HSetNX(ctx, redisKey, "unixTimes", joinStr("0", splitNum))
-		// hash 的过期问题，需要看下是不是需要自动续期
-		rdb.Expire(ctx, redisKey, time.Hour)
-	}
 	return &slideWindowLimiter{
 		TimeInterval: timeInterval,
 		Limit:        limit,
@@ -160,7 +161,6 @@ func NewSlideWindowLimiter(timeInterval int64, limit int64, splitNum int64) Limi
 		startAt:      time.Now().UnixMilli(),
 		eachTime:     timeInterval / splitNum,
 		eachCounters: make([][2]int64, splitNum),
-		redisKey:     redisKey,
 	}
 }
 

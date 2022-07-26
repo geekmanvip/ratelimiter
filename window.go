@@ -3,7 +3,6 @@ package ratelimiter
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
-	"github.com/google/uuid"
 	"sync"
 	"time"
 )
@@ -54,10 +53,6 @@ func (w *windowLimiter) AllowN(num int64) bool {
 
 // 使用 redis 实现限流
 func (w *windowLimiter) allowWithRedis(num int64) bool {
-	if w.redisKey == "" {
-		w.redisKey = "rl:wd:" + uuid.NewString()
-	}
-
 	lua := redis.NewScript(`
 		local key = KEYS[1]
 		local limit = tonumber(ARGV[1])
@@ -85,6 +80,11 @@ func (w *windowLimiter) allowWithRedis(num int64) bool {
 		return true
 	}
 	return false
+}
+
+func (w *windowLimiter) WithRedis(key string) Limiter {
+	w.redisKey = redisPrefix + windowPrefix + key
+	return w
 }
 
 func NewWindowLimiter(timeInterval int64, limit int64) Limiter {

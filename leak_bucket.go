@@ -16,6 +16,8 @@ type leakBucketLimiter struct {
 	lastTime int64
 	// 桶内剩余水量
 	waterNum int64
+	// Redis key
+	redisKey string
 }
 
 func (l *leakBucketLimiter) Allow() bool {
@@ -39,6 +41,11 @@ func (l *leakBucketLimiter) AllowN(num int64) bool {
 	}
 
 	return false
+}
+
+func (l *leakBucketLimiter) WithRedis(key string) Limiter {
+	l.redisKey = redisPrefix + leakBucketPrefix + key
+	return l
 }
 
 // NewLeakBucketLimiter 容量和 rate 的单位都是秒，这边暂不支持其他的时间单位

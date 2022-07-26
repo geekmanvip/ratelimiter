@@ -17,6 +17,8 @@ type tokenBucketLimiter struct {
 	lastTime int64
 	// 桶内剩余水量
 	waterNum int64
+	// Redis key
+	redisKey string
 }
 
 func (t *tokenBucketLimiter) Allow() bool {
@@ -40,6 +42,11 @@ func (t *tokenBucketLimiter) AllowN(num int64) bool {
 	}
 
 	return false
+}
+
+func (t *tokenBucketLimiter) WithRedis(key string) Limiter {
+	t.redisKey = redisPrefix + tokenBucketPrefix + key
+	return t
 }
 
 func NewTokenBucketLimiter(capacity int64, rate int64) Limiter {
