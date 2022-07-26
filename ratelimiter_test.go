@@ -28,11 +28,11 @@ func TestSlideWindowLimiter(t *testing.T) {
 
 func TestLeakBucketLimiter(t *testing.T) {
 	//ratelimiter.NewLeakBucketLimiter(4, 2).WithRedis("test").Allow()
-	test(ratelimiter.NewLeakBucketLimiter(4, 2))
+	//test(ratelimiter.NewLeakBucketLimiter(4, 2))
 }
 
 func TestTokenBucketLimiter(t *testing.T) {
-	//test(ratelimiter.NewTokenBucketLimiter(3, 2))
+	test(ratelimiter.NewTokenBucketLimiter(3, 2).WithRedis("test"))
 }
 
 func test(limiter ratelimiter.Limiter) {

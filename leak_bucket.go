@@ -79,7 +79,7 @@ func (l *leakBucketLimiter) allowWithRedis(num int64) bool {
 		redis.call("HSET", key, "lastTime", currentTime)
 		if (currentWater + num) <= capacity then
 			redis.call("HSET", key, "waterNum", currentWater + num)
-			return currentWater
+			return 1
 		end
 		return 0
 	`)

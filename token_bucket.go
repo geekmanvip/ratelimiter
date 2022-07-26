@@ -1,6 +1,7 @@
 package ratelimiter
 
 import (
+	"github.com/go-redis/redis/v8"
 	"math"
 	"sync"
 	"time"
@@ -48,11 +49,56 @@ func (t *tokenBucketLimiter) AllowN(num int64) bool {
 }
 
 func (t *tokenBucketLimiter) allowWithRedis(num int64) bool {
+	lua := redis.NewScript(`
+		-- 外部参数接收
+		local key = KEYS[1]
+		local capacity = tonumber(ARGV[1])
+		local rate = tonumber(ARGV[2])
+		local num = tonumber(ARGV[3])
+		
+		-- 获取 Redis 的毫秒
+		local tmp_time = redis.call("TIME")
+		local currentTime = tonumber(tmp_time[1])
+		
+		-- 获取 Redis 中存储的 lastTime 等信息
+		local rateInfo = redis.call("HMGET", key, "lastTime", "waterNum")
+		local lastTime = rateInfo[1]
+		local waterNum = rateInfo[2]
+		
+		-- 剩余令牌
+		local leftToken = waterNum + (currentTime - lastTime) * rate
+		if leftToken > capacity then 
+			leftToken = capacity
+		end
+
+		redis.call("HSET", key, "lastTime", currentTime)
+		if (leftToken - num) > 0 then
+			redis.call("HSET", key, "waterNum", leftToken - num)
+			return 1
+		end
+		return 0
+	`)
+	res, _ := lua.Run(ctx,
+		rdb,
+		[]string{t.redisKey},
+		t.Capacity,
+		t.Rate,
+		num,
+	).Int()
+	if res == 1 {
+		return true
+	}
 	return false
 }
 
 func (t *tokenBucketLimiter) WithRedis(key string) Limiter {
 	t.redisKey = redisPrefix + tokenBucketPrefix + key
+	if rdb != nil {
+		rdb.HSetNX(ctx, t.redisKey, "lastTime", t.lastTime)
+		rdb.HSetNX(ctx, t.redisKey, "waterNum", t.waterNum)
+		// hash 的过期问题，需要看下是不是需要自动续期
+		rdb.Expire(ctx, t.redisKey, time.Hour)
+	}
 	return t
 }
 
