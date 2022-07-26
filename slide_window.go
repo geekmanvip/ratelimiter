@@ -24,6 +24,8 @@ type slideWindowLimiter struct {
 	eachCounters [][2]int64
 	// redis 存储的 key(hash 表)
 	redisKey string
+	// 错误信息
+	err error
 }
 
 func (sw *slideWindowLimiter) Allow() bool {
@@ -147,6 +149,10 @@ func (sw *slideWindowLimiter) WithRedis(redisKey string) Limiter {
 	}
 
 	return sw
+}
+
+func (sw *slideWindowLimiter) Err() error {
+	return sw.err
 }
 
 // NewSlideWindowLimiter 创建滑动窗口限流器

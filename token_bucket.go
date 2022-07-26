@@ -20,6 +20,8 @@ type tokenBucketLimiter struct {
 	waterNum int64
 	// Redis key
 	redisKey string
+	// 错误信息
+	err error
 }
 
 func (t *tokenBucketLimiter) Allow() bool {
@@ -100,6 +102,10 @@ func (t *tokenBucketLimiter) WithRedis(redisKey string) Limiter {
 		rdb.Expire(ctx, t.redisKey, time.Hour)
 	}
 	return t
+}
+
+func (t *tokenBucketLimiter) Err() error {
+	return t.err
 }
 
 func NewTokenBucketLimiter(capacity int64, rate int64) Limiter {

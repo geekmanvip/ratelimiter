@@ -19,6 +19,8 @@ type leakBucketLimiter struct {
 	waterNum int64
 	// Redis key
 	redisKey string
+	// 错误信息
+	err error
 }
 
 func (l *leakBucketLimiter) Allow() bool {
@@ -105,6 +107,10 @@ func (l *leakBucketLimiter) WithRedis(redisKey string) Limiter {
 		rdb.Expire(ctx, l.redisKey, time.Hour)
 	}
 	return l
+}
+
+func (l *leakBucketLimiter) Err() error {
+	return l.err
 }
 
 // NewLeakBucketLimiter todo 容量和 rate 的单位都是秒，这边暂不支持其他的时间单位

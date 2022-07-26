@@ -17,6 +17,8 @@ type Limiter interface {
 	AllowN(num int64) bool
 	// WithRedis 使用 Redis 进行限流
 	WithRedis(redisKey string) Limiter
+	// Err 获取执行中的错误
+	Err() error
 	// 内部 Redis 实现
 	allowWithRedis(num int64) bool
 }

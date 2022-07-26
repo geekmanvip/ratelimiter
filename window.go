@@ -20,6 +20,8 @@ type windowLimiter struct {
 	counter int64
 	// 计数存储在 Redis 中的时候的 key
 	redisKey string
+	// 错误信息
+	err error
 }
 
 func (w *windowLimiter) Allow() bool {
@@ -85,6 +87,10 @@ func (w *windowLimiter) allowWithRedis(num int64) bool {
 func (w *windowLimiter) WithRedis(redisKey string) Limiter {
 	w.redisKey = redisPrefix + windowPrefix + redisKey
 	return w
+}
+
+func (w *windowLimiter) Err() error {
+	return w.err
 }
 
 func NewWindowLimiter(timeInterval int64, limit int64) Limiter {
