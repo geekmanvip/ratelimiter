@@ -25,6 +25,9 @@ func (l *leakBucketLimiter) Allow() bool {
 }
 
 func (l *leakBucketLimiter) AllowN(num int64) bool {
+	if l.redisKey != "" {
+		return l.allowWithRedis(num)
+	}
 	l.Lock()
 	defer l.Unlock()
 
@@ -40,6 +43,10 @@ func (l *leakBucketLimiter) AllowN(num int64) bool {
 		return true
 	}
 
+	return false
+}
+
+func (l *leakBucketLimiter) allowWithRedis(num int64) bool {
 	return false
 }
 

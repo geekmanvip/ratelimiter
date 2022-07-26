@@ -26,6 +26,9 @@ func (t *tokenBucketLimiter) Allow() bool {
 }
 
 func (t *tokenBucketLimiter) AllowN(num int64) bool {
+	if t.redisKey != "" {
+		return t.allowWithRedis(num)
+	}
 	t.Lock()
 	defer t.Unlock()
 
@@ -41,6 +44,10 @@ func (t *tokenBucketLimiter) AllowN(num int64) bool {
 		return true
 	}
 
+	return false
+}
+
+func (t *tokenBucketLimiter) allowWithRedis(num int64) bool {
 	return false
 }
 

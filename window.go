@@ -28,7 +28,7 @@ func (w *windowLimiter) Allow() bool {
 
 func (w *windowLimiter) AllowN(num int64) bool {
 	// 设置了 Redis 存储，则使用 Redis 实现分布式限流
-	if rdb != nil {
+	if w.redisKey != "" {
 		return w.allowWithRedis(num)
 	}
 

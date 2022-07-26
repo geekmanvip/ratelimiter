@@ -14,4 +14,5 @@ type Limiter interface {
 	Allow() bool
 	AllowN(num int64) bool
 	WithRedis(key string) Limiter
+	allowWithRedis(num int64) bool
 }

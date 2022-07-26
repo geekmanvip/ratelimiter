@@ -31,7 +31,7 @@ func (sw *slideWindowLimiter) Allow() bool {
 }
 
 func (sw *slideWindowLimiter) AllowN(num int64) bool {
-	if rdb != nil {
+	if sw.redisKey != "" {
 		return sw.allowWithRedis(num)
 	}
 
