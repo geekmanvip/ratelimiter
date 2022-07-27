@@ -57,3 +57,11 @@
 - 支持固定窗口、滑动窗口、漏桶、令牌桶 4 种限流器
 - 支持分布式限流器，依赖于 Redis，直接在限流上使用 WithRedis("test") 即可
 
+#### 使用建议
+
+-   使用限流器来保护自己，避免被其他服务请求打挂
+    -   建议使用固定窗口限流器(NewWindowLimiter)或者滑动窗口限流器(NewSlideWindowLimiter)
+    -   一般作为 middleware 在路由层级配置即可，可以针对具体接口或者某个 group、整个服务，进行配置，根据自己的业务需求来
+-   使用限流器来保护下游，避免把其他服务打挂
+    -   建议使用漏桶(NewLeakBucketLimiter)或者令牌桶(NewTokenBucketLimiter)限流器
+    -   在调用其他服务的 SDK 那边进行配置，可以根据服务名，或者接口名来进行配置
