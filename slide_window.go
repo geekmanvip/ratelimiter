@@ -67,7 +67,6 @@ func (sw *slideWindowLimiter) AllowN(num int64) bool {
 }
 
 func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
-	// lua 操作序列化等太复杂了，不想写，直接使用 zset 实现滑动日志限流算法，就是耗费的内存有点大
 	lua := redis.NewScript(`
 		-- 外部参数接收
 		local key = KEYS[1]
@@ -123,7 +122,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		end
 		return 0
 	`)
-	res, _ := lua.Run(ctx,
+	res, err := lua.Run(ctx,
 		rdb,
 		[]string{sw.redisKey},
 		sw.SplitNum,
@@ -132,6 +131,7 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 		sw.Limit,
 		num,
 	).Int()
+	sw.err = err
 	if res == 1 {
 		return true
 	}
@@ -156,10 +156,20 @@ func (sw *slideWindowLimiter) Err() error {
 }
 
 // NewSlideWindowLimiter 创建滑动窗口限流器
-// @param timeInterval 窗口间隔，单位毫秒，默认 1000ms，也就是 1 秒，正常不要低于这个值
-// @param limit 在这个窗口内，不能超过的请求数
-// @param splitNum 将这个窗口拆分成多少个子窗口，避免临界窗口问题
-func NewSlideWindowLimiter(timeInterval int64, limit int64, splitNum int64) Limiter {
+func NewSlideWindowLimiter(timeInterval int64, limit int64, args ...int64) Limiter {
+	var splitNum int64 = 10
+	if len(args) > 0 && args[0] > 1 && args[0] <= 100 {
+		splitNum = args[0]
+	}
+
+	var err error
+	if timeInterval <= 100 {
+		err = TimeIntervalErr
+	}
+	if limit < 1 {
+		err = LimitErr
+	}
+
 	return &slideWindowLimiter{
 		TimeInterval: timeInterval,
 		Limit:        limit,
@@ -167,6 +177,7 @@ func NewSlideWindowLimiter(timeInterval int64, limit int64, splitNum int64) Limi
 		startAt:      time.Now().UnixMilli(),
 		eachTime:     timeInterval / splitNum,
 		eachCounters: make([][2]int64, splitNum),
+		err:          err,
 	}
 }
 
