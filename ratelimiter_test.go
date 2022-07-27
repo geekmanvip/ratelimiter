@@ -45,6 +45,10 @@ func TestWindowLimiter_WithRedis(t *testing.T) {
 	limiter := ratelimiter.NewWindowLimiter(1000, 5).WithRedis("test")
 	test(limiter)
 }
+func BenchmarkWindowLimiter(b *testing.B) {
+	limiter := ratelimiter.NewWindowLimiter(1000, 5)
+	test(limiter)
+}
 
 // 滑动时间窗口测试
 func TestSlideWindowLimiter(t *testing.T) {
