@@ -32,6 +32,7 @@ func (t *tokenBucketLimiter) AllowN(num int64) bool {
 	if t.redisKey != "" {
 		return t.allowWithRedis(num)
 	}
+
 	t.Lock()
 	defer t.Unlock()
 
@@ -80,13 +81,14 @@ func (t *tokenBucketLimiter) allowWithRedis(num int64) bool {
 		end
 		return 0
 	`)
-	res, _ := lua.Run(ctx,
+	res, err := lua.Run(ctx,
 		rdb,
 		[]string{t.redisKey},
 		t.Capacity,
 		t.Rate,
 		num,
 	).Int()
+	t.err = err
 	if res == 1 {
 		return true
 	}
@@ -109,10 +111,21 @@ func (t *tokenBucketLimiter) Err() error {
 }
 
 func NewTokenBucketLimiter(capacity int64, rate int64) Limiter {
+	var err error
+	if capacity < 1 {
+		err = CapacityErr
+	}
+	if rate < 1 {
+		err = RateErr
+	}
+	if capacity < rate {
+		err = CapacityLessRateErr
+	}
 	return &tokenBucketLimiter{
 		Capacity: capacity,
 		Rate:     rate,
 		lastTime: time.Now().Unix(),
 		waterNum: capacity,
+		err:      err,
 	}
 }
