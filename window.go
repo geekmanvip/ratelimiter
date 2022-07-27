@@ -93,7 +93,12 @@ func (w *windowLimiter) allowWithRedis(num int64) bool {
 }
 
 func (w *windowLimiter) WithRedis(redisKey string) Limiter {
-	w.redisKey = redisPrefix + windowPrefix + redisKey
+	if rdb != nil {
+		w.redisKey = redisPrefix + windowPrefix + redisKey
+	} else {
+		w.err = RedisInitErr
+	}
+
 	return w
 }
 

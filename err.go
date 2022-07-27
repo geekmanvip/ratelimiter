@@ -8,4 +8,5 @@ var (
 	CapacityErr         = errors.New("capacity cannot less than 1")
 	RateErr             = errors.New("rate cannot less than 1")
 	CapacityLessRateErr = errors.New("capacity cannot less than rate")
+	RedisInitErr        = errors.New("WithRedis need SetRedisStorage first")
 )

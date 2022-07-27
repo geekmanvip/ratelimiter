@@ -31,7 +31,7 @@ func (l *leakBucketLimiter) AllowN(num int64) bool {
 	if l.redisKey != "" {
 		return l.allowWithRedis(num)
 	}
-	
+
 	l.Lock()
 	defer l.Unlock()
 
@@ -101,12 +101,15 @@ func (l *leakBucketLimiter) allowWithRedis(num int64) bool {
 }
 
 func (l *leakBucketLimiter) WithRedis(redisKey string) Limiter {
-	l.redisKey = redisPrefix + leakBucketPrefix + redisKey
 	if rdb != nil {
+		l.redisKey = redisPrefix + leakBucketPrefix + redisKey
+
 		rdb.HSetNX(ctx, l.redisKey, "lastTime", l.lastTime)
 		rdb.HSetNX(ctx, l.redisKey, "waterNum", l.waterNum)
-		// hash 的过期问题，需要看下是不是需要自动续期
+		// todo hash 的过期问题，需要看下是不是需要自动续期
 		rdb.Expire(ctx, l.redisKey, time.Hour)
+	} else {
+		l.err = RedisInitErr
 	}
 	return l
 }

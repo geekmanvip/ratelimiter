@@ -96,13 +96,17 @@ func (t *tokenBucketLimiter) allowWithRedis(num int64) bool {
 }
 
 func (t *tokenBucketLimiter) WithRedis(redisKey string) Limiter {
-	t.redisKey = redisPrefix + tokenBucketPrefix + redisKey
 	if rdb != nil {
+		t.redisKey = redisPrefix + tokenBucketPrefix + redisKey
+
 		rdb.HSetNX(ctx, t.redisKey, "lastTime", t.lastTime)
 		rdb.HSetNX(ctx, t.redisKey, "waterNum", t.waterNum)
-		// hash 的过期问题，需要看下是不是需要自动续期
+		// todo hash 的过期问题，需要看下是不是需要自动续期
 		rdb.Expire(ctx, t.redisKey, time.Hour)
+	} else {
+		t.err = RedisInitErr
 	}
+
 	return t
 }
 

@@ -139,13 +139,16 @@ func (sw *slideWindowLimiter) allowWithRedis(num int64) bool {
 }
 
 func (sw *slideWindowLimiter) WithRedis(redisKey string) Limiter {
-	sw.redisKey = redisPrefix + slideWindowPrefix + redisKey
 	if rdb != nil {
+		sw.redisKey = redisPrefix + slideWindowPrefix + redisKey
+
 		rdb.HSetNX(ctx, sw.redisKey, "startAt", time.Now().UnixMilli())
 		rdb.HSetNX(ctx, sw.redisKey, "counters", joinStr("0", sw.SplitNum))
 		rdb.HSetNX(ctx, sw.redisKey, "unixTimes", joinStr("0", sw.SplitNum))
-		// hash 的过期问题，需要看下是不是需要自动续期
+		// todo hash 的过期问题，需要看下是不是需要自动续期
 		rdb.Expire(ctx, sw.redisKey, time.Hour)
+	} else {
+		sw.err = RedisInitErr
 	}
 
 	return sw
