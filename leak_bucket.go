@@ -31,6 +31,7 @@ func (l *leakBucketLimiter) AllowN(num int64) bool {
 	if l.redisKey != "" {
 		return l.allowWithRedis(num)
 	}
+	
 	l.Lock()
 	defer l.Unlock()
 
@@ -85,13 +86,14 @@ func (l *leakBucketLimiter) allowWithRedis(num int64) bool {
 		end
 		return 0
 	`)
-	res, _ := lua.Run(ctx,
+	res, err := lua.Run(ctx,
 		rdb,
 		[]string{l.redisKey},
 		l.Capacity,
 		l.Rate,
 		num,
 	).Int()
+	l.err = err
 	if res == 1 {
 		return true
 	}
@@ -113,12 +115,23 @@ func (l *leakBucketLimiter) Err() error {
 	return l.err
 }
 
-// NewLeakBucketLimiter todo 容量和 rate 的单位都是秒，这边暂不支持其他的时间单位
+// NewLeakBucketLimiter 容量和 rate 的单位都是秒，这边暂不支持其他的时间单位
 func NewLeakBucketLimiter(capacity int64, rate int64) Limiter {
+	var err error
+	if capacity < 1 {
+		err = CapacityErr
+	}
+	if rate < 1 {
+		err = RateErr
+	}
+	if capacity < rate {
+		err = CapacityLessRateErr
+	}
 	return &leakBucketLimiter{
 		Capacity: capacity,
 		Rate:     rate,
 		lastTime: time.Now().Unix(),
 		waterNum: 0,
+		err:      err,
 	}
 }
