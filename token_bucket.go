@@ -106,8 +106,7 @@ func (t *tokenBucketLimiter) WithRedis(redisKey string) Limiter {
 
 		rdb.HSetNX(ctx, t.redisKey, "lastTime", t.lastTime)
 		rdb.HSetNX(ctx, t.redisKey, "waterNum", t.waterNum)
-		// todo hash 的过期问题，需要看下是不是需要自动续期
-		rdb.Expire(ctx, t.redisKey, time.Hour)
+		setHashKeyExpire(t.redisKey)
 	} else {
 		t.err = RedisInitErr
 	}

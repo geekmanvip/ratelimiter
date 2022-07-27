@@ -150,8 +150,7 @@ func (sw *slideWindowLimiter) WithRedis(redisKey string) Limiter {
 		rdb.HSetNX(ctx, sw.redisKey, "startAt", time.Now().UnixMilli())
 		rdb.HSetNX(ctx, sw.redisKey, "counters", joinStr("0", sw.SplitNum))
 		rdb.HSetNX(ctx, sw.redisKey, "unixTimes", joinStr("0", sw.SplitNum))
-		// todo hash 的过期问题，需要看下是不是需要自动续期
-		rdb.Expire(ctx, sw.redisKey, time.Hour)
+		setHashKeyExpire(sw.redisKey)
 	} else {
 		sw.err = RedisInitErr
 	}

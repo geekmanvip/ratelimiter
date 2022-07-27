@@ -111,8 +111,7 @@ func (l *leakBucketLimiter) WithRedis(redisKey string) Limiter {
 
 		rdb.HSetNX(ctx, l.redisKey, "lastTime", l.lastTime)
 		rdb.HSetNX(ctx, l.redisKey, "waterNum", l.waterNum)
-		// todo hash 的过期问题，需要看下是不是需要自动续期
-		rdb.Expire(ctx, l.redisKey, time.Hour)
+		setHashKeyExpire(l.redisKey)
 	} else {
 		l.err = RedisInitErr
 	}
