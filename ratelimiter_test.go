@@ -10,12 +10,7 @@ import (
 )
 
 func TestSetRedisStorage(t *testing.T) {
-	err := ratelimiter.SetRedisStorage(ratelimiter.RedisConfig{
-		Host:     "127.0.0.1",
-		Port:     6379,
-		Password: "",
-		Db:       0,
-	})
+	err := setRedisStorage()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -27,6 +22,7 @@ func TestWindowLimiter(t *testing.T) {
 	test(limiter)
 }
 func TestWindowLimiter_WithRedis(t *testing.T) {
+	setRedisStorage()
 	limiter := ratelimiter.NewWindowLimiter(1000, 5).WithRedis("test")
 	test(limiter)
 }
@@ -37,6 +33,7 @@ func TestSlideWindowLimiter(t *testing.T) {
 	test(limiter)
 }
 func TestSlideWindowLimiter_WithRedis(t *testing.T) {
+	setRedisStorage()
 	limiter := ratelimiter.NewSlideWindowLimiter(1000, 1).WithRedis("test")
 	test(limiter)
 }
@@ -47,6 +44,7 @@ func TestLeakBucketLimiter(t *testing.T) {
 	test(limiter)
 }
 func TestLeakBucketLimiter_WithRedis(t *testing.T) {
+	setRedisStorage()
 	limiter := ratelimiter.NewLeakBucketLimiter(4, 2).WithRedis("test")
 	test(limiter)
 }
@@ -57,16 +55,13 @@ func TestTokenBucketLimiter(t *testing.T) {
 	test(limiter)
 }
 func TestTokenBucketLimiter_WithRedis(t *testing.T) {
+	setRedisStorage()
 	limiter := ratelimiter.NewTokenBucketLimiter(4, 2).WithRedis("test")
 	test(limiter)
 }
 
 func test(limiter ratelimiter.Limiter) {
 	fmt.Printf("\n%T\n", limiter)
-	if err := limiter.Err(); err != nil {
-		log.Println(err)
-		return
-	}
 	if err := limiter.Err(); err != nil {
 		log.Println(err)
 		return
@@ -78,4 +73,13 @@ func test(limiter ratelimiter.Limiter) {
 		fmt.Printf("%d 次请求 %d 是否被接受 %t \n", i, t, acq)
 		time.Sleep(time.Millisecond * 100)
 	}
+}
+
+func setRedisStorage() error {
+	return ratelimiter.SetRedisStorage(ratelimiter.RedisConfig{
+		Host:     "127.0.0.1",
+		Port:     6379,
+		Password: "",
+		Db:       0,
+	})
 }
