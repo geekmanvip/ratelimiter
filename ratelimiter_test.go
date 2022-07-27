@@ -2,6 +2,7 @@ package ratelimiter_test
 
 import (
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -18,7 +19,17 @@ func TestSetRedisStorage(t *testing.T) {
 }
 
 func TestWindowLimiter(t *testing.T) {
-	limiter := ratelimiter.NewWindowLimiter(1000, 2).WithRedis("window")
+	limiter := ratelimiter.NewWindowLimiter(1000, 5).WithRedis("test")
+	if err := limiter.Err(); err != nil {
+		log.Println(err)
+		return
+	}
+	limiter.Allow()
+	if err := limiter.Err(); err != nil {
+		log.Println(err)
+		return
+	}
+
 	test(limiter)
 }
 

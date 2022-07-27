@@ -1,7 +1,6 @@
 package ratelimiter
 
 import (
-	"context"
 	"github.com/go-redis/redis/v8"
 	"sync"
 	"time"
@@ -10,7 +9,7 @@ import (
 // 固定窗口限流器
 type windowLimiter struct {
 	sync.Mutex
-	// 时间间隔，单位毫秒，默认 1000，也就是一秒
+	// 时间间隔，单位毫秒，建议 1000，也就是一秒
 	TimeInterval int64
 	// 流量限制
 	Limit int64
@@ -77,7 +76,16 @@ func (w *windowLimiter) allowWithRedis(num int64) bool {
     		return 1  
 		end
 	`)
-	res, _ := lua.Run(context.Background(), rdb, []string{w.redisKey}, w.Limit, num, w.TimeInterval).Int()
+	res, err := lua.Run(ctx,
+		rdb,
+		[]string{w.redisKey},
+		w.Limit,
+		num,
+		w.TimeInterval,
+	).Int()
+	if err != nil {
+		w.err = err
+	}
 	if res == 1 {
 		return true
 	}
@@ -94,10 +102,19 @@ func (w *windowLimiter) Err() error {
 }
 
 func NewWindowLimiter(timeInterval int64, limit int64) Limiter {
+	var err error
+	if timeInterval <= 100 {
+		err = TimeIntervalErr
+	}
+	if limit < 1 {
+		err = LimitErr
+	}
+
 	return &windowLimiter{
 		TimeInterval: timeInterval,
 		Limit:        limit,
 		startAt:      time.Now().UnixMilli(),
 		counter:      0,
+		err:          err,
 	}
 }
