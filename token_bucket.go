@@ -29,6 +29,11 @@ func (t *tokenBucketLimiter) Allow() bool {
 }
 
 func (t *tokenBucketLimiter) AllowN(num int64) bool {
+	// 限流器本身有报错，直接返回 false
+	if t.err != nil {
+		return false
+	}
+
 	if t.redisKey != "" {
 		return t.allowWithRedis(num)
 	}

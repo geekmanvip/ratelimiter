@@ -33,6 +33,11 @@ func (sw *slideWindowLimiter) Allow() bool {
 }
 
 func (sw *slideWindowLimiter) AllowN(num int64) bool {
+	// 限流器本身有报错，直接返回 false
+	if sw.err != nil {
+		return false
+	}
+
 	if sw.redisKey != "" {
 		return sw.allowWithRedis(num)
 	}

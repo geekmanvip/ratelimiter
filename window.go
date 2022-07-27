@@ -28,6 +28,11 @@ func (w *windowLimiter) Allow() bool {
 }
 
 func (w *windowLimiter) AllowN(num int64) bool {
+	// 限流器本身有报错，直接返回 false
+	if w.err != nil {
+		return false
+	}
+
 	// 设置了 Redis 存储，则使用 Redis 实现分布式限流
 	if w.redisKey != "" {
 		return w.allowWithRedis(num)

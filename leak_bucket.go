@@ -28,6 +28,11 @@ func (l *leakBucketLimiter) Allow() bool {
 }
 
 func (l *leakBucketLimiter) AllowN(num int64) bool {
+	// 限流器本身有报错，直接返回 false
+	if l.err != nil {
+		return false
+	}
+
 	if l.redisKey != "" {
 		return l.allowWithRedis(num)
 	}
